@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blur the Authentic Identity</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .desktop {
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        .camera-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            transform: scaleX(-1);
+            filter: brightness(0.6);
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        .window-stack {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            bottom: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .window {
+            position: relative;
+            background: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .window.self-acceptance-window {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            z-index: 100;
+            width: 400px;
+            height: 400px;
+            min-width: 250px;
+            min-height: 150px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            width: 80px;
+        }
+
+        .pixel-shuffle-window,
+        .face-recognition-window,
+        .gesture-face-window,
+        .custom-identity-window {
+            width: 450px;
+            height: 500px;
+            flex-shrink: 0;
+        }
+
+        .window-header {
+            height: 32px;
+            background: linear-gradient(to bottom, #e8e8e8, #d6d6d6);
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .window-title {
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+            margin-left: 15px;
+        }
+
+        .pixel-shuffle-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #videoElement {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            z-index: 1;
+        }
+
+        #canvasElement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            display: block;
+            pointer-events: none;
+            image-rendering: pixelated;
+        }
+
+        .control-panel {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .status {
+            color: white;
+            font-size: 12px;
+        }
+
+        .pixel-size-slider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .pixel-size-slider input {
+            width: 100px;
+        }
+
+        .start-button {
+            padding: 8px 16px;
+            background: #27c93f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .start-button:hover {
+            background: #1e9a30;
+        }
+
+        .start-button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .back-button {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .face-recognition-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            position: relative;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        #faceVideoElement {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #faceCanvasElement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .face-status {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .face-start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 12px 24px;
+            background: #27c93f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .face-start-button:hover {
+            background: #1e9a30;
+        }
+
+        .gesture-face-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #gestureFaceVideo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #gestureFaceCanvas, #videoOverlayCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #videoOverlayCanvas {
+            z-index: 10;
+        }
+
+        .gesture-face-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .gesture-face-status.palm-detected {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        .gesture-face-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .custom-identity-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            position: relative;
+            background: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .identity-placeholder {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+        }
+
+        .identity-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .identity-placeholder p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .identity-hint {
+            font-size: 12px !important;
+            color: #555 !important;
+        }
+
+        #identityImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .gesture-face-overlay h2 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .gesture-face-overlay p {
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .gesture-face-start-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .gesture-face-start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .self-acceptance-window {
+            width: 550px;
+            height: 320px;
+            top: 480px;
+            left: 100px;
+            z-index: 70;
+            min-width: 250px;
+            min-height: 150px;
+            background: #1a1a2e;
+        }
+
+        .self-acceptance-window .window-header {
+            background: #2a2a4a;
+        }
+
+        .self-acceptance-window .window-title {
+            color: #e0e0e0;
+        }
+
+        .self-acceptance-content {
+            padding: 15px;
+            height: calc(100% - 32px);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .self-acceptance-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #d0d0d0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .self-acceptance-cursor {
+            color: #0f0;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop">
+        <video id="cameraBackground" class="camera-background" autoplay muted playsinline style="display: none;"></video>
+        <div class="menu-bar">
+            <div class="menu-left">
+                <span class="menu-item" onclick="goBack()">Desktop</span>
+                <span class="menu-item">Pixel Shuffle</span>
+            </div>
+            <div class="menu-right">
+                <span class="time">15:00:00</span>
+            </div>
+        </div>
+
+        <div class="window-stack">
+            <div class="window pixel-shuffle-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title">Blur the Authentic Identity</span>
+                </div>
+                <div class="pixel-shuffle-content">
+                    <video id="videoElement" autoplay muted playsinline></video>
+                    <canvas id="canvasElement"></canvas>
+                    <div class="control-panel">
+                        <div class="status" id="status">Status: Loading model...</div>
+                        <div class="pixel-size-slider">
+                            <span>Pixel Size:</span>
+                            <input type="range" id="pixelSize" min="5" max="30" value="15">
+                            <span id="pixelSizeValue">15</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="window gesture-face-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title">Variable digital identity</span>
+                </div>
+                <div class="gesture-face-content" id="gestureFaceContent">
+                    <video id="gestureFaceVideo" autoplay playsinline muted style="display: none;"></video>
+                    
+                    <canvas id="gestureFaceCanvas"></canvas>
+                    
+                    <canvas id="videoOverlayCanvas"></canvas>
+                    
+                    <div class="gesture-face-status" id="gestureFaceStatus">Loading...</div>
+                </div>
+            </div>
+
+            <div class="window custom-identity-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title">Custom Digital Identity</span>
+                </div>
+                <div class="custom-identity-content" id="customIdentityContent">
+                    <div class="identity-placeholder" id="identityPlaceholder">
+                        <div class="identity-icon">🖼️</div>
+                        <p>No custom identity yet</p>
+                        <p class="identity-hint">Visit folder2 to create your digital identity</p>
+                    </div>
+                    <img id="identityImage" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;" />
+                </div>
+            </div>
+        </div>
+
+        <div class="window self-acceptance-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title">Self-Acceptance Theory</span>
+                </div>
+                <div class="self-acceptance-content">
+                    <span class="self-acceptance-text" id="selfAcceptanceText"></span>
+                    <span class="self-acceptance-cursor" id="selfAcceptanceCursor">|</span>
+                </div>
+            </div>
+
+        <button class="back-button" onclick="goBack()">← Back to Desktop</button>
+
+        <div class="dock">
+            <div class="dock-item" data-app="app1"><img src="图标/1.png" alt="App 1"></div>
+            <div class="dock-item" data-app="app2"><img src="图标/2.png" alt="App 2"></div>
+            <div class="dock-item" data-app="app3"><img src="图标/3.png" alt="App 3"></div>
+            <div class="dock-item" data-app="app4"><img src="图标/4.png" alt="App 4"></div>
+            <div class="dock-item" data-app="app5"><img src="图标/5.png" alt="App 5"></div>
+            <div class="dock-item" data-app="app6"><img src="图标/6.png" alt="App 6"></div>
+            <div class="dock-item" data-app="app7"><img src="图标/7.png" alt="App 7"></div>
+        </div>
+    </div>
+
+    <script>
+        let sharedCameraStream = null;
+        let cameraInitializing = false;
+        let cameraInitializePromise = null;
+
+        async function getSharedCameraStream() {
+            if (sharedCameraStream) {
+                return sharedCameraStream;
+            }
+
+            if (cameraInitializing && cameraInitializePromise) {
+                return cameraInitializePromise;
+            }
+
+            cameraInitializing = true;
+            cameraInitializePromise = (async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'user', width: 640, height: 480 } 
+                    });
+                    sharedCameraStream = stream;
+                    
+                    // 初始化所有视频元素
+                    initializeAllVideos(stream);
+                    
+                    return stream;
+                } catch (err) {
+                    console.error('Camera access error:', err);
+                    return null;
+                } finally {
+                    cameraInitializing = false;
+                }
+            })();
+
+            return cameraInitializePromise;
+        }
+
+        function initializeAllVideos(stream) {
+            // 初始化背景视频
+            const cameraBackground = document.getElementById('cameraBackground');
+            if (cameraBackground && !cameraBackground.srcObject) {
+                cameraBackground.srcObject = stream;
+                cameraBackground.style.display = 'block';
+                cameraBackground.play().catch(err => console.error('Background video play error:', err));
+            }
+            
+            // 初始化像素洗牌视频
+            const videoElement = document.getElementById('videoElement');
+            if (videoElement && !videoElement.srcObject) {
+                videoElement.srcObject = stream;
+            }
+            
+            // 初始化人脸识别视频
+            const faceVideoElement = document.getElementById('faceVideoElement');
+            if (faceVideoElement && !faceVideoElement.srcObject) {
+                faceVideoElement.srcObject = stream;
+            }
+            
+            // 初始化手势面部识别视频
+            const gestureFaceVideo = document.getElementById('gestureFaceVideo');
+            if (gestureFaceVideo && !gestureFaceVideo.srcObject) {
+                gestureFaceVideo.srcObject = stream;
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        async function initCameraBackground() {
+            const video = document.getElementById('cameraBackground');
+            if (!video) return;
+
+            // 请求摄像头权限并初始化
+            const stream = await getSharedCameraStream();
+            if (stream && !video.srcObject) {
+                video.srcObject = stream;
+                video.style.display = 'block';
+                video.play().catch(err => console.error('Background video play error:', err));
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.querySelector('.time').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        function setupWindowDrag() {
+            // 只为文字面板添加拖动功能
+            const selfAcceptanceWindow = document.querySelector('.self-acceptance-window');
+            if (!selfAcceptanceWindow) return;
+            
+            const header = selfAcceptanceWindow.querySelector('.window-header');
+            let dragging = null;
+            let offset = { x: 0, y: 0 };
+            let zIndexCounter = 100;
+
+            header.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (e.target.classList.contains('dot')) return;
+                
+                document.getSelection().removeAllRanges();
+                
+                const rect = selfAcceptanceWindow.getBoundingClientRect();
+                
+                selfAcceptanceWindow.style.zIndex = ++zIndexCounter;
+                dragging = selfAcceptanceWindow;
+                offset = {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+                header.style.cursor = 'grabbing';
+            });
+
+            header.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                const touch = e.touches[0];
+                if (e.target.classList.contains('dot')) return;
+                
+                const rect = selfAcceptanceWindow.getBoundingClientRect();
+                
+                selfAcceptanceWindow.style.zIndex = ++zIndexCounter;
+                dragging = selfAcceptanceWindow;
+                offset = {
+                    x: touch.clientX - rect.left,
+                    y: touch.clientY - rect.top
+                };
+                header.style.cursor = 'grabbing';
+            });
+
+            function handleMouseMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                document.getSelection().removeAllRanges();
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const x = clientX - offset.x;
+                const y = clientY - offset.y;
+                
+                const maxX = window.innerWidth - dragging.offsetWidth;
+                const maxY = window.innerHeight - dragging.offsetHeight - 80;
+                
+                const boundedX = Math.max(0, Math.min(x, maxX));
+                const boundedY = Math.max(35, Math.min(y, maxY));
+                
+                dragging.style.left = boundedX + 'px';
+                dragging.style.top = boundedY + 'px';
+                dragging.style.right = 'auto';
+                dragging.style.transform = 'none';
+            }
+
+            function handleMouseUp() {
+                if (dragging) {
+                    dragging.querySelector('.window-header').style.cursor = 'grab';
+                    dragging = null;
+                }
+            }
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('touchmove', handleMouseMove);
+            document.addEventListener('touchend', handleMouseUp);
+            document.addEventListener('mouseleave', handleMouseUp);
+
+            // 关闭功能
+            const redDot = header.querySelector('.dot.red');
+            if (redDot) {
+                redDot.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selfAcceptanceWindow.style.display = 'none';
+                });
+            }
+        }
+
+        function setupWindowResize() {
+            // 只为文字面板添加缩放功能
+            const selfAcceptanceWindow = document.querySelector('.self-acceptance-window');
+            if (!selfAcceptanceWindow) return;
+            
+            let resizing = null;
+
+            selfAcceptanceWindow.addEventListener('mousemove', (e) => {
+                if (resizing) return;
+
+                const rect = selfAcceptanceWindow.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const threshold = 20;
+
+                if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                    selfAcceptanceWindow.style.cursor = 'se-resize';
+                } else {
+                    selfAcceptanceWindow.style.cursor = '';
+                }
+            });
+
+            selfAcceptanceWindow.addEventListener('mouseleave', () => {
+                if (!resizing) {
+                    selfAcceptanceWindow.style.cursor = '';
+                }
+            });
+
+            selfAcceptanceWindow.addEventListener('mousedown', (e) => {
+                const rect = selfAcceptanceWindow.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const threshold = 20;
+
+                if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    resizing = selfAcceptanceWindow;
+                    document.addEventListener('mousemove', resizeWindow);
+                    document.addEventListener('mouseup', stopResize);
+                }
+            });
+
+            function resizeWindow(e) {
+                if (!resizing) return;
+                e.preventDefault();
+
+                const rect = resizing.getBoundingClientRect();
+                const minWidth = parseInt(resizing.style.minWidth) || 250;
+                const minHeight = parseInt(resizing.style.minHeight) || 150;
+
+                const newWidth = Math.max(minWidth, e.clientX - rect.left);
+                const newHeight = Math.max(minHeight, e.clientY - rect.top);
+
+                resizing.style.width = newWidth + 'px';
+                resizing.style.height = newHeight + 'px';
+            }
+
+            function stopResize() {
+                if (resizing) {
+                    resizing.style.cursor = '';
+                    resizing = null;
+                }
+                document.removeEventListener('mousemove', resizeWindow);
+                document.removeEventListener('mouseup', stopResize);
+            }
+        }
+
+        async function setupPixelShuffle() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.getElementById('canvasElement');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const status = document.getElementById('status');
+            const pixelSizeSlider = document.getElementById('pixelSize');
+            const pixelSizeValue = document.getElementById('pixelSizeValue');
+
+            let pixelSize = 15;
+            let isRunning = false;
+
+            canvas.width = 640;
+            canvas.height = 480;
+
+            pixelSizeSlider.addEventListener('input', (e) => {
+                pixelSize = parseInt(e.target.value);
+                pixelSizeValue.textContent = pixelSize;
+            });
+
+            async function startTracking() {
+                try {
+                    status.textContent = 'Status: Accessing camera...';
+                    
+                    const stream = await getSharedCameraStream();
+                    if (stream) {
+                        video.srcObject = stream;
+                        
+                        video.onloadedmetadata = () => {
+                            canvas.width = video.videoWidth || 640;
+                            canvas.height = video.videoHeight || 480;
+                            
+                            isRunning = true;
+                            status.textContent = 'Status: Mosaic active';
+                            processFrame();
+                        };
+
+                        video.play();
+                    } else {
+                        status.textContent = 'Status: Camera access denied';
+                    }
+
+                } catch (err) {
+                    console.error('Error:', err);
+                    status.textContent = 'Status: Error: ' + err.message;
+                }
+            }
+
+            function processFrame() {
+                if (!isRunning) return;
+
+                if (video.readyState === 4) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    applyMosaic();
+                }
+
+                requestAnimationFrame(processFrame);
+            }
+
+            function applyMosaic() {
+                const blockSize = pixelSize;
+                
+                const mosaicWidth = 400;
+                const mosaicHeight = 300;
+                const startX = (canvas.width - mosaicWidth) / 2;
+                const startY = (canvas.height - mosaicHeight) / 2;
+                
+                const imageData = ctx.getImageData(startX, startY, mosaicWidth, mosaicHeight);
+                const data = imageData.data;
+                
+                for (let y = 0; y < mosaicHeight; y += blockSize) {
+                    for (let x = 0; x < mosaicWidth; x += blockSize) {
+                        const w = Math.min(blockSize, mosaicWidth - x);
+                        const h = Math.min(blockSize, mosaicHeight - y);
+                        
+                        let r = 0, g = 0, b = 0;
+                        let count = 0;
+                        
+                        for (let py = y; py < y + h && py < mosaicHeight; py++) {
+                            for (let px = x; px < x + w && px < mosaicWidth; px++) {
+                                const idx = (py * mosaicWidth + px) * 4;
+                                r += data[idx];
+                                g += data[idx + 1];
+                                b += data[idx + 2];
+                                count++;
+                            }
+                        }
+                        
+                        if (count > 0) {
+                            r = Math.round(r / count);
+                            g = Math.round(g / count);
+                            b = Math.round(b / count);
+                            
+                            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                            ctx.fillRect(startX + x, startY + y, w, h);
+                        }
+                    }
+                }
+            }
+
+            status.textContent = 'Status: Initializing...';
+            await startTracking();
+        }
+
+        function setupFaceRecognition() {
+            console.log('Face Recognition panel has been removed');
+        }
+
+
+
+        function typeWriter(elementId, text, cursorId, speed) {
+            const element = document.getElementById(elementId);
+            const cursor = document.getElementById(cursorId);
+            let index = 0;
+            
+            function type() {
+                if (index < text.length) {
+                    element.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                }
+            }
+            
+            type();
+        }
+
+        function initSelfAcceptance() {
+            const selfAcceptanceText = `From the perspective of self-acceptance theory, this study explores the connection between digital identity and appearance anxiety. Individuals constantly modify their appearances and construct virtual personas under algorithmic aesthetics and online gaze, regarding physical looks as the criterion for self-worth, which leads to self-doubt and mental exhaustion. Self-acceptance encourages people to embrace their natural features and unique characteristics, refusing to define personal value by uniform beauty standards. Letting go of the obsession with ideal digital images and accepting physical imperfections helps people break free from appearance anxiety, abandon fabricated virtual identities, form stable authentic self-perception, and ultimately shift from catering to external aesthetics to recognizing the true self (Chamberlain & Haaga, 2001).`;
+            
+            typeWriter('selfAcceptanceText', selfAcceptanceText, 'selfAcceptanceCursor', 50);
+        }
+
+        function loadCustomIdentity() {
+            const identityImage = document.getElementById('identityImage');
+            const placeholder = document.getElementById('identityPlaceholder');
+            
+            const customIdentityData = localStorage.getItem('customDigitalIdentity');
+            
+            if (customIdentityData && customIdentityData.startsWith('data:image/')) {
+                identityImage.onload = function() {
+                    identityImage.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                
+                identityImage.onerror = function() {
+                    placeholder.style.display = 'flex';
+                    identityImage.style.display = 'none';
+                };
+                
+                identityImage.src = customIdentityData;
+            } else {
+                placeholder.style.display = 'flex';
+                identityImage.style.display = 'none';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(loadCustomIdentity, 100);
+        });
+
+        async function setupGestureFaceRecognition() {
+            const video = document.createElement('video');
+            video.id = 'gestureFaceVideo';
+            video.autoplay = true;
+            video.muted = true;
+            video.playsInline = true;
+            video.style.display = 'none';
+            
+            const canvas = document.createElement('canvas');
+            canvas.id = 'gestureFaceCanvas';
+            canvas.style.position = 'absolute';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            
+            const container = document.querySelector('.gesture-face-content');
+            container.innerHTML = '';
+            container.appendChild(video);
+            container.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const status = document.createElement('div');
+            status.id = 'gestureFaceStatus';
+            status.style.position = 'absolute';
+            status.style.bottom = '10px';
+            status.style.left = '10px';
+            status.style.color = '#fff';
+            status.style.fontSize = '14px';
+            status.style.background = 'rgba(0,0,0,0.5)';
+            status.style.padding = '5px 10px';
+            status.style.borderRadius = '4px';
+            container.appendChild(status);
+            
+            let isRunning = false;
+            let overlayVideo = null;
+            
+            async function start() {
+                try {
+                    status.textContent = 'Connecting to camera...';
+                    
+                    const stream = await getSharedCameraStream();
+                    if (stream) {
+                        video.srcObject = stream;
+                        
+                        video.onloadedmetadata = () => {
+                            canvas.width = video.videoWidth || 640;
+                            canvas.height = video.videoHeight || 480;
+                            
+                            overlayVideo = document.createElement('video');
+                            overlayVideo.src = '1.mp4';
+                            overlayVideo.loop = true;
+                            overlayVideo.muted = true;
+                            overlayVideo.playsInline = true;
+                            overlayVideo.style.display = 'none';
+                            document.body.appendChild(overlayVideo);
+                            overlayVideo.load();
+                            
+                            isRunning = true;
+                            status.textContent = 'Video overlay active';
+                            processFrame();
+                        };
+                        
+                        video.play();
+                    } else {
+                        status.textContent = 'Camera access denied';
+                    }
+                } catch (err) {
+                    console.error('Error:', err);
+                    status.textContent = 'Error: ' + err.message;
+                }
+            }
+            
+            function processFrame() {
+                if (!isRunning) return;
+                
+                if (video.readyState === 4) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    const faceWidth = 200;
+                    const faceHeight = 250;
+                    const x = centerX - faceWidth / 2;
+                    const y = centerY - faceHeight / 2;
+                    
+                    if (overlayVideo && overlayVideo.videoWidth > 0) {
+                        const scale = Math.max(faceWidth / overlayVideo.videoWidth, faceHeight / overlayVideo.videoHeight);
+                        const vw = overlayVideo.videoWidth * scale;
+                        const vh = overlayVideo.videoHeight * scale;
+                        const dx = x - (vw - faceWidth) / 2;
+                        const dy = y - (vh - faceHeight) / 2;
+                        
+                        if (overlayVideo.readyState >= 2 && overlayVideo.paused) {
+                            overlayVideo.play().catch(() => {});
+                        }
+                        
+                        ctx.drawImage(overlayVideo, dx, dy, vw, vh);
+                        status.textContent = 'Video overlay active';
+                    } else {
+                        ctx.fillStyle = 'rgba(102, 126, 234, 0.3)';
+                        ctx.fillRect(x, y, faceWidth, faceHeight);
+                        ctx.strokeStyle = '#667eea';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([10, 5]);
+                        ctx.strokeRect(x, y, faceWidth, faceHeight);
+                        ctx.setLineDash([]);
+                        
+                        ctx.font = '14px Arial';
+                        ctx.fillStyle = '#667eea';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Video not available', centerX, centerY);
+                        
+                        status.textContent = 'Video loading...';
+                    }
+                }
+                
+                requestAnimationFrame(processFrame);
+            }
+            
+            start();
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+        initCameraBackground();
+        setupWindowDrag();
+        setupWindowResize();
+        setupPixelShuffle();
+        setupFaceRecognition();
+        initSelfAcceptance();
+        setupGestureFaceRecognition();
+        loadCustomIdentity();
+    </script>
+    <script src="obstacle.js"></script>
+</body>
+</html>

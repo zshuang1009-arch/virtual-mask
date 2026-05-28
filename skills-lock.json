@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "iga-pages": {
+      "source": "volc-iga-pages/iga-pages-skills",
+      "sourceType": "github",
+      "skillPath": "skills/iga-pages/SKILL.md",
+      "computedHash": "06c1b434b4685e7d564aee63c241b1d20d828378cc7a5174bbbcd78c490902cc"
+    }
+  }
+}

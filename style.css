@@ -1,0 +1,385 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+body {
+    overflow: hidden;
+}
+
+.desktop {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.menu-bar {
+    width: 100%;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    color: white;
+    font-size: 13px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+
+.menu-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.apple-icon {
+    font-size: 16px;
+}
+
+.menu-item {
+    cursor: pointer;
+    padding: 0 8px;
+}
+
+.menu-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    border-radius: 4px;
+    margin-right: 10px;
+    background: transparent;
+}
+
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.time {
+    font-family: 'SF Mono', monospace;
+}
+
+.folders-container {
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    align-items: flex-end;
+    z-index: 10;
+}
+
+.folder {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: grab;
+    transition: transform 0.2s ease;
+    user-select: none;
+    z-index: 10;
+}
+
+.folder:hover {
+    transform: scale(1.05);
+}
+
+.folder.dragging {
+    cursor: grabbing;
+    transform: scale(1.1);
+    z-index: 100;
+}
+
+.folder-icon {
+    font-size: 64px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+}
+
+.folder-name {
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.info-window {
+    position: absolute;
+    top: 100px;
+    left: 200px;
+    width: 400px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    z-index: 20;
+}
+
+.window-header {
+    height: 32px;
+    background: linear-gradient(to bottom, #e8e8e8, #d6d6d6);
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    cursor: grab;
+}
+
+.window-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.dot.red {
+    background: #ff5f56;
+}
+
+.dot.yellow {
+    background: #ffbd2e;
+}
+
+.dot.green {
+    background: #27c93f;
+}
+
+.window-title {
+    margin-left: 15px;
+    font-size: 13px;
+    color: #333;
+}
+
+.window-content {
+    padding: 20px;
+}
+
+.info-image {
+    width: 150px;
+    height: 150px;
+    float: left;
+    margin-right: 15px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.info-text {
+    color: #333;
+}
+
+.info-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.info-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #666;
+}
+
+.window-footer {
+    height: 24px;
+    background: linear-gradient(to bottom, #d6d6d6, #e8e8e8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #666;
+    border-top: 1px solid #ccc;
+}
+
+.dock {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 60px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+    z-index: 50;
+}
+
+.dock-item {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    border-radius: 10px;
+}
+
+.dock-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.dock-item:hover {
+    transform: scale(1.3) translateY(-8px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.folder-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    z-index: 100;
+}
+
+.folder-content {
+    padding: 20px;
+    min-height: 200px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.file-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+    width: 80px;
+}
+
+.file-item:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.file-icon {
+    font-size: 40px;
+}
+
+.file-name {
+    font-size: 11px;
+    color: #333;
+    text-align: center;
+    margin-top: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 70px;
+}
+
+.terminal-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 300px;
+    background: #000;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    z-index: 50;
+}
+
+.terminal-window .window-header {
+    height: 32px;
+    background: linear-gradient(to bottom, #3a3a3a, #2a2a2a);
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    cursor: grab;
+}
+
+.terminal-content {
+    width: 100%;
+    height: calc(100% - 32px);
+    padding: 15px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    color: #00ff00;
+    background: #000;
+    overflow: auto;
+    line-height: 1.6;
+}
+
+.terminal-line {
+    margin-bottom: 5px;
+}
+
+#typingLine::after {
+    content: '_';
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+@media (max-width: 768px) {
+    .info-window {
+        width: 90%;
+        left: 5%;
+        top: 50px;
+    }
+    
+    .folder-window {
+        width: 90%;
+    }
+    
+    .terminal-window {
+        width: 90%;
+        height: 250px;
+    }
+    
+    .dock {
+        gap: 4px;
+    }
+    
+    .dock-item {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+}

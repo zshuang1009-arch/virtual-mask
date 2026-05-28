@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desktop - Confidential</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .desktop {
+            background: linear-gradient(135deg, #8b0000 0%, #4a0000 50%, #1a0000 100%);
+        }
+
+        .desktop-icons {
+            position: fixed;
+            top: 40px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 5;
+        }
+
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .desktop-icon .icon-folder {
+            font-size: 48px;
+            margin-bottom: 5px;
+        }
+
+        .desktop-icon span {
+            color: #fff;
+            font-size: 12px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            word-wrap: break-word;
+        }
+
+        .desktop.dark .desktop-icon span {
+            color: #e0e0e0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .window-stack {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            right: 0;
+            bottom: 100px;
+        }
+
+        .window {
+            position: absolute;
+            background: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .window-header {
+            height: 32px;
+            background: linear-gradient(to bottom, #e8e8e8, #d6d6d6);
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            cursor: grab;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .text-window {
+            width: 500px;
+            height: 200px;
+            top: 150px;
+            left: 400px;
+            z-index: 30;
+            min-width: 200px;
+            min-height: 100px;
+        }
+
+        .text-window .window-header {
+            justify-content: flex-start;
+        }
+
+        .window-title {
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .text-content {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .text-content p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            text-align: left;
+        }
+
+        .image-window {
+            width: 350px;
+            height: 250px;
+            min-width: 100px;
+            min-height: 80px;
+        }
+
+        .image-window.top-left {
+            top: 80px;
+            left: 80px;
+            z-index: 20;
+        }
+
+        .image-window.video2-window {
+            width: 260px;
+            height: 200px;
+            top: 200px;
+            left: 300px;
+            z-index: 30;
+            min-width: 150px;
+            min-height: 100px;
+        }
+
+        .window-image {
+            width: 100%;
+            height: calc(100% - 32px);
+            object-fit: cover;
+        }
+
+        .terminal-window {
+            width: 420px;
+            height: 300px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            z-index: 100;
+            min-width: 300px;
+            min-height: 200px;
+        }
+
+        .text-window.theory-window {
+            width: 380px;
+            height: 160px;
+            top: 450px;
+            left: 150px;
+            background: #fff;
+            z-index: 25;
+            min-width: 200px;
+            min-height: 100px;
+        }
+
+        .text-window.research-window {
+            width: 550px;
+            height: 320px;
+            top: 100px;
+            right: 100px;
+            background: #1a1a1a;
+            z-index: 20;
+            min-width: 250px;
+            min-height: 150px;
+        }
+
+        .research-window .text-content {
+            color: #e0e0e0;
+        }
+
+        .research-window .window-header {
+            background: #2a2a2a;
+        }
+
+        .text-content {
+            padding: 12px 15px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+            position: relative;
+        }
+
+        .text-content p {
+            margin: 0;
+            text-align: justify;
+        }
+
+        .typewriter-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 7px;
+            height: 14px;
+            background: #0f0;
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .research-window .typing-cursor {
+            background: #0f0;
+        }
+
+        .puzzle-window {
+            width: 500px;
+            height: 400px;
+            top: 450px;
+            left: 450px;
+            z-index: 15;
+            min-width: 200px;
+            min-height: 150px;
+        }
+
+        .puzzle-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            background: #fafafa;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photos-window {
+            width: 600px;
+            height: 500px;
+            top: 100px;
+            left: 100px;
+            z-index: 20;
+            min-width: 300px;
+            min-height: 200px;
+        }
+
+        .photos-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            background: #fafafa;
+            position: relative;
+            overflow: auto;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .photo-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .photo-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .desktop.dark .photos-content {
+            background: #252525;
+        }
+
+        .photo-preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .preview-image {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+        }
+
+        .preview-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1002;
+            transition: background 0.2s;
+        }
+
+        .preview-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .photos-folder {
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .puzzle-piece {
+            position: absolute;
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.1s ease;
+            z-index: 10;
+        }
+
+        .puzzle-piece:hover {
+            transform: scale(1.05);
+            z-index: 20;
+        }
+
+        .puzzle-piece.dragging {
+            cursor: grabbing;
+            transform: scale(1.1);
+            z-index: 100;
+        }
+
+        .back-button {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .night-mode-toggle {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px;
+            margin-left: 15px;
+            color: inherit;
+            transition: transform 0.3s ease;
+        }
+
+        .night-mode-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .desktop.dark {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+        }
+
+        .desktop.dark .menu-bar {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .desktop.dark .menu-item,
+        .desktop.dark .time {
+            color: #e0e0e0;
+        }
+
+        .desktop.dark .window {
+            background: #2a2a2a;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .desktop.dark .window-header {
+            background: linear-gradient(to bottom, #3a3a3a, #2a2a2a);
+        }
+
+        .desktop.dark .window-title {
+            color: #e0e0e0;
+        }
+
+        .desktop.dark .text-content {
+            color: #d0d0d0;
+        }
+
+        .desktop.dark .text-content p {
+            color: #d0d0d0;
+        }
+
+        .desktop.dark .puzzle-content {
+            background: #252525;
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop">
+        <div class="menu-bar">
+            <div class="menu-left">
+                <span class="menu-item" onclick="goBack()">Desktop</span>
+            </div>
+            <div class="menu-right">
+                <span class="time">14:59:24</span>
+                <button class="night-mode-toggle" onclick="toggleNightMode()" id="nightModeToggle">🌙</button>
+            </div>
+        </div>
+
+        <div class="window-stack">
+            <div class="window image-window black-bg large" id="video1Window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                </div>
+                <video src="video1.mp4" class="window-image" autoplay loop muted playsinline onerror="handleVideoError(this, 'video1')"></video>
+            </div>
+
+            <div class="window image-window video2-window" id="video2Window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                </div>
+                <video src="video2.mp4" class="window-image" autoplay loop muted playsinline onerror="handleVideoError(this, 'video2')"></video>
+            </div>
+
+            <div class="window text-window theory-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title" style="margin-left: 15px;">Objectification Theory</span>
+                </div>
+                <div class="text-content">
+                    <span class="typewriter-text" id="theoryText"></span>
+                    <span class="typing-cursor" id="theoryCursor">|</span>
+                </div>
+            </div>
+
+            <div class="window text-window research-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title" style="margin-left: 15px;">NEW RESEARCH</span>
+                </div>
+                <div class="text-content">
+                    <span class="typewriter-text" id="researchText"></span>
+                    <span class="typing-cursor" id="researchCursor">|</span>
+                </div>
+            </div>
+
+            <div class="window puzzle-window" id="puzzleWindow">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title" style="margin-left: 15px;">Face Puzzle</span>
+                </div>
+                <div class="puzzle-content" id="puzzleContent">
+                    
+                </div>
+            </div>
+
+            <div class="window photos-window" id="photosWindow" style="display: none;">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title" style="margin-left: 15px;">Photos</span>
+                </div>
+                <div class="photos-content" id="photosContent">
+                    <div class="photos-grid" id="photosGrid">
+                        <!-- 图片将通过JavaScript动态加载 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="back-button" onclick="goBack()">← Back to Desktop</button>
+
+        <div class="dock">
+            <div class="dock-item" data-app="app1"><img src="图标/1.png" alt="App 1"></div>
+            <div class="dock-item" data-app="app2"><img src="图标/2.png" alt="App 2"></div>
+            <div class="dock-item" data-app="app3"><img src="图标/3.png" alt="App 3"></div>
+            <div class="dock-item" data-app="app4"><img src="图标/4.png" alt="App 4"></div>
+            <div class="dock-item" data-app="app5"><img src="图标/5.png" alt="App 5"></div>
+            <div class="dock-item" data-app="app6"><img src="图标/6.png" alt="App 6"></div>
+            <div class="dock-item" data-app="app7"><img src="图标/7.png" alt="App 7"></div>
+        </div>
+
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="desktop-icon photos-icon" onclick="openPhotosFolder()">
+                <div class="icon-folder">📁</div>
+                <span>Photos</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        function handleVideoError(videoElement, videoName) {
+            console.error('Video load error:', videoName);
+            videoElement.style.display = 'none';
+            const placeholder = document.createElement('div');
+            placeholder.style.width = '100%';
+            placeholder.style.height = '100%';
+            placeholder.style.background = '#333';
+            placeholder.style.display = 'flex';
+            placeholder.style.alignItems = 'center';
+            placeholder.style.justifyContent = 'center';
+            placeholder.style.color = '#fff';
+            placeholder.style.fontSize = '14px';
+            placeholder.textContent = videoName + ' not available';
+            videoElement.parentElement.appendChild(placeholder);
+        }
+
+        function toggleNightMode() {
+            const desktop = document.querySelector('.desktop');
+            const toggle = document.getElementById('nightModeToggle');
+            desktop.classList.toggle('dark');
+            if (desktop.classList.contains('dark')) {
+                toggle.textContent = '☀️';
+            } else {
+                toggle.textContent = '🌙';
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.querySelector('.time').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        function openPhotosFolder() {
+            const photosWindow = document.getElementById('photosWindow');
+            const photosGrid = document.getElementById('photosGrid');
+            
+            if (photosWindow.style.display === 'none') {
+                photosGrid.innerHTML = '';
+                
+                const imageFiles = [
+                    '50f2ac375a794694be55138ad8a941b8.jpg',
+                    '8b210fdca922b020f637b134dd676b65.jpg',
+                    'ddb5f2a646cabc21837a979e298a625b.jpg'
+                ];
+                
+                imageFiles.forEach((filename, index) => {
+                    const photoItem = document.createElement('div');
+                    photoItem.className = 'photo-item';
+                    photoItem.style.animationDelay = `${index * 0.1}s`;
+                    
+                    const img = document.createElement('img');
+                    img.src = `folder1-图片/${filename}`;
+                    img.alt = `Photo ${index + 1}`;
+                    img.loading = 'lazy';
+                    
+                    photoItem.appendChild(img);
+                    photosGrid.appendChild(photoItem);
+                    
+                    photoItem.addEventListener('click', () => {
+                        openPhotoPreview(img.src);
+                    });
+                });
+                
+                photosWindow.style.display = 'block';
+                const windowWidth = 600;
+                const windowHeight = 500;
+                photosWindow.style.left = `${(window.innerWidth - windowWidth) / 2}px`;
+                photosWindow.style.top = `${(window.innerHeight - windowHeight) / 2}px`;
+            } else {
+                photosWindow.style.display = 'none';
+            }
+        }
+
+        function openPhotoPreview(src) {
+            const preview = document.createElement('div');
+            preview.className = 'photo-preview';
+            preview.innerHTML = `
+                <div class="preview-overlay" onclick="closePhotoPreview()"></div>
+                <img src="${src}" alt="Preview" class="preview-image">
+                <button class="preview-close" onclick="closePhotoPreview()">×</button>
+            `;
+            document.body.appendChild(preview);
+            preview.style.display = 'flex';
+        }
+
+        function closePhotoPreview() {
+            const preview = document.querySelector('.photo-preview');
+            if (preview) {
+                preview.remove();
+            }
+        }
+
+        function setupWindowDrag() {
+            const headers = document.querySelectorAll('.window-header');
+            let dragging = null;
+            let offset = { x: 0, y: 0 };
+            let zIndexCounter = 100;
+
+            headers.forEach(header => {
+                header.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (e.target.classList.contains('dot')) return;
+                    
+                    document.getSelection().removeAllRanges();
+                    
+                    const windowEl = header.parentElement;
+                    const rect = windowEl.getBoundingClientRect();
+                    
+                    windowEl.style.zIndex = ++zIndexCounter;
+                    dragging = windowEl;
+                    offset = {
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
+                    };
+                    header.style.cursor = 'grabbing';
+                });
+
+                header.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                    const touch = e.touches[0];
+                    if (e.target.classList.contains('dot')) return;
+                    
+                    const windowEl = header.parentElement;
+                    const rect = windowEl.getBoundingClientRect();
+                    
+                    windowEl.style.zIndex = ++zIndexCounter;
+                    dragging = windowEl;
+                    offset = {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    };
+                    header.style.cursor = 'grabbing';
+                });
+            });
+
+            function handleMouseMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                document.getSelection().removeAllRanges();
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const x = clientX - offset.x;
+                const y = clientY - offset.y;
+                
+                const maxX = window.innerWidth - dragging.offsetWidth;
+                const maxY = window.innerHeight - dragging.offsetHeight - 80;
+                
+                const boundedX = Math.max(0, Math.min(x, maxX));
+                const boundedY = Math.max(35, Math.min(y, maxY));
+                
+                dragging.style.left = `${boundedX}px`;
+                dragging.style.top = `${boundedY}px`;
+            }
+
+            function handleMouseUp() {
+                if (dragging) {
+                    dragging.querySelector('.window-header').style.cursor = 'grab';
+                    dragging = null;
+                }
+            }
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('touchmove', handleMouseMove);
+            document.addEventListener('touchend', handleMouseUp);
+            document.addEventListener('mouseleave', handleMouseUp);
+
+            headers.forEach(header => {
+                const redDot = header.querySelector('.dot.red');
+                if (redDot) {
+                    redDot.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        header.parentElement.style.display = 'none';
+                    });
+                }
+            });
+        }
+
+        function setupWindowResize() {
+            const windows = document.querySelectorAll('.window');
+            let resizing = null;
+
+            windows.forEach(windowEl => {
+                let isInResizeZone = false;
+
+                windowEl.addEventListener('mousemove', (e) => {
+                    if (resizing) return;
+
+                    const rect = windowEl.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const threshold = 20;
+
+                    if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                        isInResizeZone = true;
+                        windowEl.style.cursor = 'se-resize';
+                    } else {
+                        isInResizeZone = false;
+                        windowEl.style.cursor = '';
+                    }
+                });
+
+                windowEl.addEventListener('mouseleave', () => {
+                    if (!resizing) {
+                        windowEl.style.cursor = '';
+                    }
+                });
+
+                windowEl.addEventListener('mousedown', (e) => {
+                    const rect = windowEl.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const threshold = 20;
+
+                    if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        resizing = windowEl;
+                        document.addEventListener('mousemove', resizeWindow);
+                        document.addEventListener('mouseup', stopResize);
+                    }
+                });
+
+                windowEl.addEventListener('touchstart', (e) => {
+                    const rect = windowEl.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    const threshold = 30;
+
+                    if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                        e.stopPropagation();
+                        resizing = windowEl;
+                        document.addEventListener('touchmove', resizeWindow);
+                        document.addEventListener('touchend', stopResize);
+                    }
+                });
+            });
+
+            function resizeWindow(e) {
+                if (!resizing) return;
+                e.preventDefault();
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const rect = resizing.getBoundingClientRect();
+                const newWidth = clientX - rect.left;
+                const newHeight = clientY - rect.top;
+                
+                const computedStyle = window.getComputedStyle(resizing);
+                const minWidth = parseInt(computedStyle.minWidth) || 100;
+                const minHeight = parseInt(computedStyle.minHeight) || 80;
+                
+                if (newWidth >= minWidth) {
+                    resizing.style.width = `${newWidth}px`;
+                }
+                if (newHeight >= minHeight) {
+                    resizing.style.height = `${newHeight}px`;
+                }
+                
+                if (resizing.id === 'puzzleWindow') {
+                    updatePuzzleSizes();
+                }
+            }
+            
+            function updatePuzzleSizes() {
+                const puzzleContent = document.getElementById('puzzleContent');
+                if (!puzzleContent) return;
+                
+                const containerWidth = puzzleContent.offsetWidth;
+                const containerHeight = puzzleContent.offsetHeight;
+                const pieces = document.querySelectorAll('.puzzle-piece');
+                
+                pieces.forEach(piece => {
+                    if (piece.dataset.ratio && piece.dataset.initialX !== undefined && piece.dataset.initialY !== undefined) {
+                        const ratio = parseFloat(piece.dataset.ratio);
+                        const baseSize = Math.min(containerWidth, containerHeight) * 0.36;
+                        
+                        if (ratio > 1) {
+                            piece.style.width = `${baseSize}px`;
+                            piece.style.height = `${baseSize / ratio}px`;
+                        } else {
+                            piece.style.width = `${baseSize * ratio}px`;
+                            piece.style.height = `${baseSize}px`;
+                        }
+                        
+                        const scaleX = containerWidth / (parseFloat(piece.dataset.containerWidth) || containerWidth);
+                        const scaleY = containerHeight / (parseFloat(piece.dataset.containerHeight) || containerHeight);
+                        
+                        piece.style.left = `${parseFloat(piece.dataset.initialX) * scaleX}px`;
+                        piece.style.top = `${parseFloat(piece.dataset.initialY) * scaleY}px`;
+                    }
+                });
+            }
+
+            function stopResize() {
+                if (resizing) {
+                    resizing.style.cursor = '';
+                }
+                resizing = null;
+                document.removeEventListener('mousemove', resizeWindow);
+                document.removeEventListener('mouseup', stopResize);
+                document.removeEventListener('touchmove', resizeWindow);
+                document.removeEventListener('touchend', stopResize);
+            }
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function setupPuzzle() {
+            const puzzleImages = [
+                '面部拼图/下巴-恢复的.png',
+                '面部拼图/右脸-恢复的.png',
+                '面部拼图/未标题-1-恢复的.png',
+                '面部拼图/眼睛2-恢复的.png',
+                '面部拼图/鼻子-恢复的.png'
+            ];
+
+            const shuffledImages = shuffleArray(puzzleImages);
+            const puzzleContent = document.getElementById('puzzleContent');
+            const windowWidth = puzzleContent.offsetWidth;
+            const windowHeight = puzzleContent.offsetHeight;
+            const initialSize = Math.min(windowWidth, windowHeight) * 0.36;
+
+            shuffledImages.forEach((imgSrc, index) => {
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                img.className = 'puzzle-piece';
+                img.style.objectFit = 'contain';
+                img.style.borderRadius = '4px';
+                img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+                img.onload = function() {
+                    const ratio = this.naturalWidth / this.naturalHeight;
+                    this.dataset.ratio = ratio;
+                    this.dataset.containerWidth = windowWidth;
+                    this.dataset.containerHeight = windowHeight;
+                    
+                    let imgWidth, imgHeight;
+                    if (ratio > 1) {
+                        imgWidth = initialSize;
+                        imgHeight = initialSize / ratio;
+                    } else {
+                        imgWidth = initialSize * ratio;
+                        imgHeight = initialSize;
+                    }
+                    
+                    this.dataset.initialX = Math.random() * (windowWidth - imgWidth);
+                    this.dataset.initialY = Math.random() * (windowHeight - imgHeight);
+                    
+                    this.style.width = `${imgWidth}px`;
+                    this.style.height = `${imgHeight}px`;
+                    this.style.left = `${this.dataset.initialX}px`;
+                    this.style.top = `${this.dataset.initialY}px`;
+                };
+                
+                puzzleContent.appendChild(img);
+            });
+
+            setupPuzzlePieceDrag();
+            setupWindowResize();
+        }
+
+        function setupPuzzlePieceDrag() {
+            const pieces = document.querySelectorAll('.puzzle-piece');
+            let draggingPiece = null;
+            let pieceOffset = { x: 0, y: 0 };
+            const puzzleContent = document.getElementById('puzzleContent');
+            let zIndexCounter = 100;
+
+            pieces.forEach(piece => {
+                piece.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    draggingPiece = piece;
+                    piece.style.zIndex = ++zIndexCounter;
+                    const rect = piece.getBoundingClientRect();
+                    pieceOffset = {
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
+                    };
+                    piece.classList.add('dragging');
+                });
+
+                piece.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                    const touch = e.touches[0];
+                    draggingPiece = piece;
+                    piece.style.zIndex = ++zIndexCounter;
+                    const rect = piece.getBoundingClientRect();
+                    pieceOffset = {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    };
+                    piece.classList.add('dragging');
+                });
+            });
+
+            function handlePieceMove(e) {
+                if (!draggingPiece) return;
+                e.preventDefault();
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const contentRect = puzzleContent.getBoundingClientRect();
+                const x = clientX - contentRect.left - pieceOffset.x;
+                const y = clientY - contentRect.top - pieceOffset.y;
+                
+                const maxX = contentRect.width - draggingPiece.offsetWidth;
+                const maxY = contentRect.height - draggingPiece.offsetHeight;
+                
+                const boundedX = Math.max(0, Math.min(x, maxX));
+                const boundedY = Math.max(0, Math.min(y, maxY));
+                
+                draggingPiece.style.left = `${boundedX}px`;
+                draggingPiece.style.top = `${boundedY}px`;
+            }
+
+            function handlePieceUp() {
+                if (draggingPiece) {
+                    draggingPiece.classList.remove('dragging');
+                    draggingPiece.dataset.initialX = draggingPiece.style.left.replace('px', '');
+                    draggingPiece.dataset.initialY = draggingPiece.style.top.replace('px', '');
+                    draggingPiece = null;
+                }
+            }
+
+            document.addEventListener('mousemove', handlePieceMove);
+            document.addEventListener('mouseup', handlePieceUp);
+            document.addEventListener('touchmove', handlePieceMove);
+            document.addEventListener('touchend', handlePieceUp);
+            document.addEventListener('mouseleave', handlePieceUp);
+        }
+
+        
+
+        function typeWriter(elementId, text, cursorId, delay = 0) {
+            const textElement = document.getElementById(elementId);
+            const cursorElement = document.getElementById(cursorId);
+            
+            if (!textElement) return;
+            
+            let index = 0;
+            const speed = 25;
+            
+            function type() {
+                if (index < text.length) {
+                    textElement.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                } else if (cursorElement) {
+                    cursorElement.style.display = 'none';
+                }
+            }
+            
+            setTimeout(type, delay);
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        window.onload = function() {
+            setupWindowDrag();
+            setupWindowResize();
+            setupPuzzle();
+            
+            const theoryText = `Fredrickson and Roberts (1997) proposed the objectification theory, which explains how mainstream aesthetics reduce female identity merely to physical appearance value through the "objectifying gaze". Individuals internalise others' perspectives and regard themselves as objects to be observed, leading to body surveillance, emotional anxiety and narrowed self-identity. Appearance anxiety is a typical manifestation of self-objectification.`;
+            
+            const researchText = `The alienation of human digital identity is a specific manifestation of digital alienation. It runs through the whole process in which real individuals move from the physical world to the virtual world and engage in digital interactions, manifesting as the loss of authentic self, the weakening of self-subjectivity and the emergence of isolated self. Such alienation gives rise to self-identity crisis and estrangement in social relations, reflecting the gradual disintegration of individual subjectivity in the digital era. The embedding of digital identity construction into the logic of capital accumulation serves as the fundamental cause of digital identity alienation. Algorithmic technology with controlling and manipulating effects acts as the key cause, while individuals' pursuit of identity recognition and self-fulfilment constitutes its psychological cause. (Li & Chen, 2025)`;
+            
+            typeWriter('theoryText', theoryText, 'theoryCursor', 300);
+            typeWriter('researchText', researchText, 'researchCursor', 500);
+        };
+    </script>
+    <script src="obstacle.js"></script>
+</body>
+</html>

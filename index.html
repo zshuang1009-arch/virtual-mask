@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desktop - Confidential</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .desktop {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop">
+        <div class="menu-bar">
+            <div class="menu-left">
+                <span class="menu-item">Desktop</span>
+            </div>
+            <div class="menu-right">
+                <span class="time">14:59:16</span>
+            </div>
+        </div>
+
+        <div class="folders-container">
+            <div class="folder" data-folder="info1">
+                <img src="图标/7.png" alt="Folder" class="folder-icon">
+                <div class="folder-name">folder1</div>
+            </div>
+
+            <div class="folder" data-folder="info2">
+                <img src="图标/7.png" alt="Folder" class="folder-icon">
+                <div class="folder-name">folder2</div>
+            </div>
+
+            <div class="folder" data-folder="confidential">
+                <img src="图标/7.png" alt="Folder" class="folder-icon">
+                <div class="folder-name">folder3</div>
+            </div>
+        </div>
+
+        <div class="info-window" id="infoWindow">
+            <div class="window-header">
+                <div class="window-dots">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+            </div>
+            <div class="window-content">
+                <img src="图标/8.jpg" alt="Digital Identity" class="info-image">
+                <div class="info-text">
+                    <p class="info-title">In the digital age, people possess multiple fragmented digital identities. How to analyze and distinguish the real identity, and rediscover one's original self, has become a major challenge.</p>
+                    <p class="info-body">Digital identity refers to the sum of all accounts, behaviors, and relational data that an individual leaves behind on the internet.</p>
+                </div>
+            </div>
+            <div class="window-footer">
+                <span>Digital Surveillance</span>
+            </div>
+        </div>
+
+        <div class="dock">
+            <div class="dock-item" data-app="app1"><img src="图标/1.png" alt="App 1"></div>
+            <div class="dock-item" data-app="app2"><img src="图标/2.png" alt="App 2"></div>
+            <div class="dock-item" data-app="app3"><img src="图标/3.png" alt="App 3"></div>
+            <div class="dock-item" data-app="app4"><img src="图标/4.png" alt="App 4"></div>
+            <div class="dock-item" data-app="app5"><img src="图标/5.png" alt="App 5"></div>
+            <div class="dock-item" data-app="app6"><img src="图标/6.png" alt="App 6"></div>
+            <div class="dock-item" data-app="app7"><img src="图标/7.png" alt="App 7"></div>
+        </div>
+
+        <div class="folder-window" id="folderWindow" style="display: none;">
+            <div class="window-header">
+                <div class="window-dots">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <span class="window-title" id="folderTitle">Folder</span>
+            </div>
+            <div class="folder-content" id="folderContent">
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script src="obstacle.js"></script>
+</body>
+</html>

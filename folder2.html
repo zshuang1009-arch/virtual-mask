@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desktop - Confidential</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .desktop {
+            position: relative;
+        }
+
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .desktop > *:not(.background-video) {
+            position: relative;
+            z-index: 1;
+        }
+
+        .desktop-icons {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 5;
+        }
+
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .desktop-icon .icon-image {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 5px;
+        }
+
+        .desktop-icon .icon-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .desktop-icon span {
+            color: #fff;
+            font-size: 12px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            word-wrap: break-word;
+        }
+
+        .danmaku-window {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .danmaku-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .danmaku-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .danmaku-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .danmaku-dot.red { background: #ff5f56; }
+        .danmaku-dot.yellow { background: #ffbd2e; }
+        .danmaku-dot.green { background: #27c93f; }
+
+        .danmaku-address {
+            flex: 1;
+            background: #333;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #666;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .danmaku-content {
+            position: absolute;
+            top: 48px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .danmaku-text {
+            position: absolute;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.3s;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .danmaku-text:hover {
+            color: #ff0000;
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .danmaku-intro {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .danmaku-intro h2 {
+            color: #666;
+            font-size: 48px;
+            margin-bottom: 20px;
+            letter-spacing: 8px;
+        }
+
+        .danmaku-intro p {
+            color: #444;
+            font-size: 18px;
+            letter-spacing: 4px;
+        }
+
+        .window-stack {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            right: 0;
+            bottom: 100px;
+        }
+
+        .window {
+            position: absolute;
+            background: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .window-header {
+            height: 32px;
+            background: linear-gradient(to bottom, #e8e8e8, #d6d6d6);
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            cursor: grab;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .text-window {
+            width: 380px;
+            top: 280px;
+            left: 380px;
+            z-index: 35;
+        }
+
+        .text-window .window-header {
+            justify-content: center;
+        }
+
+        .window-title {
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .text-content {
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .text-content p {
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            text-align: justify;
+        }
+
+        .image-window {
+            overflow: hidden;
+        }
+
+        .image-window.large {
+            width: 280px;
+            height: 380px;
+            min-width: 100px;
+            min-height: 80px;
+        }
+
+        .image-window.medium {
+            width: 260px;
+            height: 220px;
+            min-width: 100px;
+            min-height: 80px;
+        }
+
+        .image-window.small {
+            width: 180px;
+            height: 140px;
+            min-width: 80px;
+            min-height: 60px;
+        }
+
+        .image-window.xsmall {
+            width: 150px;
+            height: 200px;
+            min-width: 80px;
+            min-height: 80px;
+        }
+
+        .text-window {
+            min-width: 200px;
+            min-height: 150px;
+        }
+
+        .face-recognition-window {
+            min-width: 250px;
+            min-height: 250px;
+        }
+
+        .digital-journal-window {
+            width: 500px;
+            height: 550px;
+            top: 100px;
+            left: 500px;
+            z-index: 15;
+            min-width: 300px;
+            min-height: 300px;
+        }
+
+        .digital-journal-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            background: #fafafa;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+
+        .digital-journal-content h3 {
+            margin: 0 0 12px 0;
+            color: #333;
+            font-size: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .hashtags-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .hashtags-grid span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hashtags-grid span:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .journal-section ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .journal-section li {
+            margin-bottom: 12px;
+            color: #444;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .desktop.dark .digital-journal-content {
+            background: #252525;
+        }
+
+        .desktop.dark .digital-journal-content h3 {
+            color: #e0e0e0;
+            border-color: #667eea;
+        }
+
+        .desktop.dark .journal-section li {
+            color: #d0d0d0;
+        }
+
+        .simulacrum-window {
+            width: 550px;
+            height: 400px;
+            top: 50px;
+            left: 100px;
+            z-index: 10;
+            min-width: 300px;
+            min-height: 250px;
+        }
+
+        .beauty-editor-window {
+            width: 700px;
+            height: 650px;
+            top: 100px;
+            right: 80px;
+            z-index: 35;
+            min-width: 500px;
+            min-height: 500px;
+        }
+
+        .beauty-editor-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            background: #1a1a2e;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .beauty-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .beauty-header h2 {
+            color: #fff;
+            font-size: 18px;
+            margin: 0 0 5px 0;
+            font-weight: 600;
+        }
+
+        .beauty-subtitle {
+            color: #aaa;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .beauty-canvas-container {
+            flex: 1;
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .beauty-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-height: 350px;
+        }
+
+        .canvas-section {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .canvas-original {
+            left: 0;
+        }
+
+        .canvas-edited {
+            right: 0;
+        }
+
+        .canvas-section canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .canvas-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .canvas-edited .canvas-label {
+            left: auto;
+            right: 10px;
+        }
+
+        .compare-slider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            cursor: ew-resize;
+            z-index: 100;
+            transform: translateX(-50%);
+        }
+
+        .slider-line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateX(-50%);
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .slider-handle:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .slider-arrow {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .beauty-controls {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .slider-group:last-of-type {
+            margin-bottom: 15px;
+        }
+
+        .slider-group label {
+            color: #ddd;
+            font-size: 12px;
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .slider-group input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .slider-value {
+            color: #667eea;
+            font-size: 12px;
+            font-weight: bold;
+            width: 35px;
+            text-align: right;
+        }
+
+        .reset-button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .post-button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .post-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .beauty-footer {
+            text-align: center;
+            color: #fff;
+            font-size: 11px;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .beauty-placeholder {
+            text-align: center;
+            padding: 30px;
+            color: #fff;
+        }
+
+        .beauty-placeholder .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .beauty-placeholder p {
+            margin: 8px 0;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .beauty-placeholder .placeholder-hint {
+            font-size: 13px !important;
+            color: #aaa !important;
+        }
+
+        .slider-group label {
+            color: #fff !important;
+        }
+
+        .slider-value {
+            color: #fff !important;
+        }
+
+        .simulacrum-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            background: #1a1a2e;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .simulacrum-text {
+            color: #c0c0c0;
+            font-size: 14px;
+            line-height: 1.8;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            opacity: 0;
+        }
+
+        .simulacrum-text.typing {
+            opacity: 1;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background: #0f0;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .image-window.black-bg {
+            top: 80px;
+            left: 100px;
+            z-index: 20;
+            background: #000;
+        }
+
+        .image-window.red-cam {
+            top: 120px;
+            left: 300px;
+            z-index: 25;
+        }
+
+        .image-window.surveillance {
+            top: 80px;
+            left: 580px;
+            z-index: 22;
+        }
+
+        .image-window.red-car {
+            top: 50px;
+            left: 880px;
+            z-index: 28;
+        }
+
+        .image-window.people {
+            top: 350px;
+            left: 200px;
+            z-index: 30;
+        }
+
+        .image-window.eyes-grid {
+            width: 220px;
+            height: 200px;
+            top: 200px;
+            left: 750px;
+            z-index: 32;
+        }
+
+        .window-image {
+            width: 100%;
+            height: calc(100% - 32px);
+            object-fit: cover;
+        }
+
+        .video-window {
+            background: #000;
+        }
+
+        .video-window video {
+            width: 100%;
+            height: calc(100% - 32px);
+            object-fit: cover;
+        }
+
+        .back-button {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .face-recognition-window {
+            width: 450px;
+            height: 400px;
+            top: 400px;
+            left: 600px;
+            z-index: 40;
+        }
+
+        .face-recognition-content {
+            width: 100%;
+            height: calc(100% - 32px);
+            position: relative;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        #videoElement {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #canvasElement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .face-status {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 12px 24px;
+            background: #27c93f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .start-button:hover {
+            background: #1e9a30;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 背景视频 -->
+    <video id="backgroundVideo" class="background-video" autoplay muted loop playsinline>
+        <source src="desktop.mp4" type="video/mp4">
+    </video>
+    <div class="desktop">
+        <div class="menu-bar">
+            <div class="menu-left">
+                <span class="menu-item" onclick="goBack()">Desktop</span>
+            </div>
+            <div class="menu-right">
+                <span class="time">15:00:02</span>
+            </div>
+        </div>
+
+        <div class="window-stack">
+            <div class="window simulacrum-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title" style="margin-left: 15px;">Simulacrum Theory</span>
+                </div>
+                <div class="simulacrum-content">
+                    <div class="simulacrum-text" id="simulacrumText"></div>
+                    <span class="typing-cursor" id="typingCursor"></span>
+                </div>
+            </div>
+
+            <!-- 人像美化面板 -->
+            <div class="window beauty-editor-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title" style="margin-left: 15px;">Editing Self: The Digital Face</span>
+                </div>
+                <div class="beauty-editor-content">
+                    <!-- Header -->
+                    <div class="beauty-header">
+                        <h2>Editing Self: The Digital Face</h2>
+                        <p class="beauty-subtitle">Drag the sliders to build your digital simulacrum</p>
+                    </div>
+                    
+                    <!-- Hidden Canvas Area -->
+                    <div class="beauty-canvas-container" style="display: none;">
+                        <canvas id="beautyOriginalCanvas"></canvas>
+                        <canvas id="beautyEditedCanvas"></canvas>
+                        <video id="beautyVideo" autoplay playsinline muted style="display: none;"></video>
+                    </div>
+                    
+                    <!-- Placeholder Message -->
+                    <div class="beauty-placeholder">
+                        <div class="placeholder-icon">🎭</div>
+                        <p>Customize your digital identity</p>
+                        <p class="placeholder-hint">Adjust the sliders below to create your digital simulacrum</p>
+                    </div>
+                    
+                    <!-- Controls Area -->
+                    <div class="beauty-controls">
+                        <div class="slider-group">
+                            <label>Whitening</label>
+                            <input type="range" id="whiteningSlider" min="0" max="100" value="0">
+                            <span class="slider-value" id="whiteningValue">0</span>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Smooth</label>
+                            <input type="range" id="smoothSlider" min="0" max="100" value="0">
+                            <span class="slider-value" id="smoothValue">0</span>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Contour</label>
+                            <input type="range" id="contourSlider" min="0" max="100" value="0">
+                            <span class="slider-value" id="contourValue">0</span>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Warmth</label>
+                            <input type="range" id="warmthSlider" min="-50" max="50" value="0">
+                            <span class="slider-value" id="warmthValue">0</span>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>ASCII Art</label>
+                            <input type="range" id="asciiSlider" min="0" max="100" value="0">
+                            <span class="slider-value" id="asciiValue">0</span>
+                        </div>
+                        
+                        <button class="reset-button" id="beautyResetBtn">Reset</button>
+                        <button class="post-button" id="beautyPostBtn">Post to Gallery</button>
+                    </div>
+                    
+                    <!-- Footer Text -->
+                    <p class="beauty-footer">Every edit generates a simulacrum without an original (Baudrillard, 1994)</p>
+                </div>
+            </div>
+
+
+            <div class="window digital-journal-window">
+                <div class="window-header">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="window-title" style="margin-left: 15px;">Digital Work Journal</span>
+                </div>
+                <div class="digital-journal-content">
+                    <div class="hashtags-section">
+                        <h3>Hashtags</h3>
+                        <div class="hashtags-grid">
+                            <span>#Make peace with bare face</span>
+                            <span>#Daily outfit</span>
+                            <span>#Reject anxiety</span>
+                            <span>#Heal appearance anxiety</span>
+                            <span>#Stop appearance mental drain</span>
+                            <span>#Authentic self</span>
+                            <span>#Break aesthetic shackles</span>
+                            <span>#Undefined beauty</span>
+                            <span>#Atmospheric daily life</span>
+                            <span>#Personal image building</span>
+                            <span>#Refuse appearance involution</span>
+                            <span>#Original facial charm</span>
+                            <span>#Relaxed lifestyle</span>
+                            <span>#Virtual identity management</span>
+                            <span>#Self in front of camera</span>
+                            <span>#Aesthetic reflection</span>
+                        </div>
+                    </div>
+                    <div class="journal-section">
+                        <h3>Digital Work Journal</h3>
+                        <ul>
+                            <li>Match trending hashtags with copywriting to cater to platform traffic preferences and polish public personal images.</li>
+                            <li>Purchase followers and likes to boost account popularity and create a high-profile virtual profile.</li>
+                            <li>Maintain consistent speaking style and facial expressions to shape a fixed public persona steadily.</li>
+                            <li>Retouch and color-correct images repeatedly to build an exquisite look fitting mainstream online aesthetics.</li>
+                            <li>Arrange posting frequency and content themes deliberately to sustain online presence.</li>
+                            <li>Jump on hot topics to gain exposure and strengthen account recognition.</li>
+                            <li>Craft soothing personal images via words and visuals to gain public recognition and attention.</li>
+                            <li>Spend plenty of time polishing online images, shaping ideal virtual self through data operation and persona management.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            
+        </div>
+
+        <button class="back-button" onclick="goBack()">← Back to Desktop</button>
+    </div>
+
+    <!-- Danmaku Window -->
+    <div class="danmaku-window" id="danmakuWindow">
+        <div class="danmaku-header">
+            <div class="danmaku-dots">
+                <span class="danmaku-dot red" onclick="closeDanmakuWindow()"></span>
+                <span class="danmaku-dot yellow"></span>
+                <span class="danmaku-dot green"></span>
+            </div>
+            <div class="danmaku-address">https://beauty-anxiety.danmaku</div>
+        </div>
+        <div class="danmaku-content" id="danmakuContent">
+            <div class="danmaku-intro">
+                <h2>Beauty Anxiety Stream</h2>
+                <p>Scrolling thoughts on appearance, self-image, and digital identity...</p>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        function typeWriterEffect() {
+            const textElement = document.getElementById('simulacrumText');
+            const cursorElement = document.getElementById('typingCursor');
+            
+            if (!textElement || !cursorElement) return;
+            
+            const fullText = `Based on Baudrillard's simulacrum theory, this paper examines the correlation between digital identity and appearance anxiety. Digital media constantly produces beautified simulacra detached from physical entities and constructs hyperreal aesthetic ideals superior to reality. People regard standardized virtual facial images as references, modifying and reshaping their appearances to conform to algorithmic aesthetics, which gradually erodes innate physical features. As individual identity becomes alienated, appearance anxiety emerges. Trapped in the creation and maintenance of virtual personas, individuals eventually lose authentic self-perception within the realm of simulacra (Baudrillard, 1994).`;
+            
+            let index = 0;
+            const speed = 30;
+            
+            textElement.classList.add('typing');
+            
+            function type() {
+                if (index < fullText.length) {
+                    textElement.textContent += fullText.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                } else {
+                    cursorElement.style.display = 'none';
+                }
+            }
+            
+            setTimeout(type, 500);
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.querySelector('.time').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        const danmakuTexts = [
+            'How to tell if I have protruding mouth?',
+            'Ways to slim masseter muscle quickly within 10 days',
+            'Which is more real, myself in original camera or mirror?',
+            'How do people on Xiaohongshu look so good-looking?',
+            'How to check if I have a flat back head from side profile',
+            'How to judge if cheekbones are prominent',
+            'How to visually narrow a wide face',
+            'How to improve poor plain-looking appearance',
+            'Why do I look different in photos vs real life',
+            'Can a naturally flat nose be improved?',
+            'How to fix facial asymmetry',
+            'Can daily habits affect facial appearance negatively',
+            'How ordinary people improve facial delicacy',
+            'Does staying up late ruin facial features',
+            'How to adjust unbalanced facial proportions',
+            'Why do I think I look uglier over time',
+            'Photo retouch blogger recommendation',
+            'Photo retouch service',
+            'How to refine facial features with photo editing'
+        ];
+
+        let danmakuInterval = null;
+        let danmakuCount = 0;
+        let activeDanmakus = [];
+        const LINE_HEIGHT = 40;
+
+        function openDanmakuWindow() {
+            const danmakuWindow = document.getElementById('danmakuWindow');
+            const danmakuContent = document.getElementById('danmakuContent');
+            
+            danmakuWindow.style.display = 'block';
+            activeDanmakus = [];
+            
+            function continuousCreate() {
+                if (danmakuCount < 60) {
+                    createDanmaku();
+                }
+                danmakuInterval = setTimeout(continuousCreate, 250 + Math.random() * 150);
+            }
+            
+            continuousCreate();
+        }
+
+        function closeDanmakuWindow() {
+            const danmakuWindow = document.getElementById('danmakuWindow');
+            danmakuWindow.style.display = 'none';
+            
+            if (danmakuInterval) {
+                clearInterval(danmakuInterval);
+                danmakuInterval = null;
+            }
+            
+            danmakuCount = 0;
+            activeDanmakus = [];
+        }
+
+        function findAvailableLine(contentHeight) {
+            const totalLines = Math.floor((contentHeight - 60) / LINE_HEIGHT);
+            const availableLines = [];
+            
+            for (let i = 0; i < totalLines; i++) {
+                const isOccupied = activeDanmakus.some(d => d.line === i);
+                if (!isOccupied) {
+                    availableLines.push(i);
+                }
+            }
+            
+            if (availableLines.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableLines.length);
+                return availableLines[randomIndex];
+            }
+            
+            return null;
+        }
+
+        function createDanmaku() {
+            const danmakuContent = document.getElementById('danmakuContent');
+            const contentRect = danmakuContent.getBoundingClientRect();
+            
+            const lineIndex = findAvailableLine(contentRect.height);
+            if (lineIndex === null) {
+                return;
+            }
+            
+            const text = danmakuTexts[Math.floor(Math.random() * danmakuTexts.length)];
+            const fontSize = 14 + Math.random() * 4;
+            const top = lineIndex * LINE_HEIGHT + 30;
+            const duration = 18000 + Math.random() * 6000;
+            
+            const danmaku = document.createElement('div');
+            danmaku.className = 'danmaku-text';
+            danmaku.textContent = text;
+            danmaku.style.fontSize = `${fontSize}px`;
+            danmaku.style.top = `${top}px`;
+            danmaku.style.left = `${contentRect.width}px`;
+            
+            danmakuContent.appendChild(danmaku);
+            danmakuCount++;
+            
+            const danmakuData = {
+                element: danmaku,
+                line: lineIndex
+            };
+            activeDanmakus.push(danmakuData);
+            
+            let startX = contentRect.width;
+            const endX = -danmaku.offsetWidth;
+            let startTime = Date.now();
+            let isPaused = false;
+            let pausedTime = 0;
+            
+            function animate() {
+                if (!isPaused) {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const currentX = startX - (startX - endX) * progress;
+                    
+                    danmaku.style.left = `${currentX}px`;
+                    
+                    if (progress >= 1) {
+                        danmaku.remove();
+                        danmakuCount--;
+                        const index = activeDanmakus.indexOf(danmakuData);
+                        if (index > -1) {
+                            activeDanmakus.splice(index, 1);
+                        }
+                        return;
+                    }
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            requestAnimationFrame(animate);
+            
+            danmaku.addEventListener('mouseenter', () => {
+                danmaku.style.color = '#ff0000';
+                danmaku.style.transform = 'scale(1.15)';
+                isPaused = true;
+                pausedTime = Date.now();
+            });
+            
+            danmaku.addEventListener('mouseleave', () => {
+                danmaku.style.color = '#fff';
+                danmaku.style.transform = 'scale(1)';
+                isPaused = false;
+                startTime += Date.now() - pausedTime;
+            });
+        }
+
+        
+
+        function setupWindowDrag() {
+            const headers = document.querySelectorAll('.window-header');
+            let dragging = null;
+            let offset = { x: 0, y: 0 };
+            let zIndexCounter = 100;
+
+            headers.forEach(header => {
+                header.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (e.target.classList.contains('dot')) return;
+                    
+                    document.getSelection().removeAllRanges();
+                    
+                    const windowEl = header.parentElement;
+                    const rect = windowEl.getBoundingClientRect();
+                    
+                    windowEl.style.zIndex = ++zIndexCounter;
+                    dragging = windowEl;
+                    offset = {
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
+                    };
+                    header.style.cursor = 'grabbing';
+                });
+
+                header.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                    const touch = e.touches[0];
+                    if (e.target.classList.contains('dot')) return;
+                    
+                    const windowEl = header.parentElement;
+                    const rect = windowEl.getBoundingClientRect();
+                    
+                    windowEl.style.zIndex = ++zIndexCounter;
+                    dragging = windowEl;
+                    offset = {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    };
+                    header.style.cursor = 'grabbing';
+                });
+            });
+
+            function handleMouseMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                document.getSelection().removeAllRanges();
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const x = clientX - offset.x;
+                const y = clientY - offset.y;
+                
+                const maxX = window.innerWidth - dragging.offsetWidth;
+                const maxY = window.innerHeight - dragging.offsetHeight - 80;
+                
+                const boundedX = Math.max(0, Math.min(x, maxX));
+                const boundedY = Math.max(35, Math.min(y, maxY));
+                
+                dragging.style.left = `${boundedX}px`;
+                dragging.style.top = `${boundedY}px`;
+            }
+
+            function handleMouseUp() {
+                if (dragging) {
+                    dragging.querySelector('.window-header').style.cursor = 'grab';
+                    dragging = null;
+                }
+            }
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('touchmove', handleMouseMove);
+            document.addEventListener('touchend', handleMouseUp);
+            document.addEventListener('mouseleave', handleMouseUp);
+
+            headers.forEach(header => {
+                const redDot = header.querySelector('.dot.red');
+                if (redDot) {
+                    redDot.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        header.parentElement.style.display = 'none';
+                    });
+                }
+            });
+        }
+
+        function setupWindowResize() {
+            const windows = document.querySelectorAll('.window');
+            let resizing = null;
+
+            windows.forEach(windowEl => {
+                let isInResizeZone = false;
+
+                windowEl.addEventListener('mousemove', (e) => {
+                    if (resizing) return;
+
+                    const rect = windowEl.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const threshold = 20;
+
+                    if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                        isInResizeZone = true;
+                        windowEl.style.cursor = 'se-resize';
+                    } else {
+                        isInResizeZone = false;
+                        windowEl.style.cursor = '';
+                    }
+                });
+
+                windowEl.addEventListener('mouseleave', () => {
+                    if (!resizing) {
+                        windowEl.style.cursor = '';
+                    }
+                });
+
+                windowEl.addEventListener('mousedown', (e) => {
+                    const rect = windowEl.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const threshold = 20;
+
+                    if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        resizing = windowEl;
+                        document.addEventListener('mousemove', resizeWindow);
+                        document.addEventListener('mouseup', stopResize);
+                    }
+                });
+
+                windowEl.addEventListener('touchstart', (e) => {
+                    const rect = windowEl.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    const threshold = 30;
+
+                    if (x >= rect.width - threshold && y >= rect.height - threshold) {
+                        e.stopPropagation();
+                        resizing = windowEl;
+                        document.addEventListener('touchmove', resizeWindow);
+                        document.addEventListener('touchend', stopResize);
+                    }
+                });
+            });
+
+            function resizeWindow(e) {
+                if (!resizing) return;
+                e.preventDefault();
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const rect = resizing.getBoundingClientRect();
+                const newWidth = clientX - rect.left;
+                const newHeight = clientY - rect.top;
+                
+                const computedStyle = window.getComputedStyle(resizing);
+                const minWidth = parseInt(computedStyle.minWidth) || 100;
+                const minHeight = parseInt(computedStyle.minHeight) || 80;
+                
+                if (newWidth >= minWidth) {
+                    resizing.style.width = `${newWidth}px`;
+                }
+                if (newHeight >= minHeight) {
+                    resizing.style.height = `${newHeight}px`;
+                }
+            }
+
+            function stopResize() {
+                if (resizing) {
+                    resizing.style.cursor = '';
+                }
+                resizing = null;
+                document.removeEventListener('mousemove', resizeWindow);
+                document.removeEventListener('mouseup', stopResize);
+                document.removeEventListener('touchmove', resizeWindow);
+                document.removeEventListener('touchend', stopResize);
+            }
+        }
+
+        async function setupFaceRecognition() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.getElementById('canvasElement');
+            const startButton = document.getElementById('startButton');
+            const faceStatus = document.getElementById('faceStatus');
+            
+            if (!video || !canvas) {
+                console.log('Face recognition elements not found - skipping');
+                return;
+            }
+            
+            const ctx = canvas.getContext('2d');
+
+            if (faceStatus) {
+                faceStatus.textContent = 'Status: Loading models...';
+            }
+            
+            try {
+                console.log('Loading face-api models...');
+                
+                await faceapi.loadSsdMobilenetv1Model('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
+                console.log('Loaded SSD MobileNet model');
+                
+                await faceapi.loadFaceLandmarkModel('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
+                console.log('Loaded Face Landmark model');
+                
+                await faceapi.loadFaceExpressionModel('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
+                console.log('Loaded Face Expression model');
+                
+                faceStatus.textContent = 'Status: Ready - Click to start';
+                startButton.disabled = false;
+                
+            } catch (modelErr) {
+                console.error('Model loading error:', modelErr);
+                faceStatus.textContent = 'Status: Model load failed';
+                startButton.disabled = true;
+                return;
+            }
+
+            startButton.addEventListener('click', async () => {
+                console.log('Start detection clicked');
+                
+                try {
+                    faceStatus.textContent = 'Status: Requesting camera...';
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'user' } 
+                    });
+                    
+                    console.log('Camera stream obtained');
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    startButton.style.display = 'none';
+                    faceStatus.textContent = 'Status: Detecting...';
+                    
+                    video.addEventListener('play', () => {
+                        console.log('Video playing');
+                        canvas.width = video.videoWidth || 640;
+                        canvas.height = video.videoHeight || 480;
+                        
+                        async function detectFaces() {
+                            try {
+                                const detections = await faceapi.detectAllFaces(video)
+                                    .withFaceLandmarks()
+                                    .withFaceExpressions();
+                                
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                
+                                if (detections.length > 0) {
+                                    faceapi.draw.drawDetections(canvas, detections);
+                                    faceapi.draw.drawFaceLandmarks(canvas, detections);
+                                    faceapi.draw.drawFaceExpressions(canvas, detections);
+                                    faceStatus.textContent = `Status: ${detections.length} face(s) detected`;
+                                } else {
+                                    faceStatus.textContent = 'Status: No faces detected';
+                                }
+                            } catch (detectErr) {
+                                console.error('Detection error:', detectErr);
+                            }
+                            
+                            requestAnimationFrame(detectFaces);
+                        }
+                        
+                        detectFaces();
+                    });
+                    
+                    video.addEventListener('error', (err) => {
+                        console.error('Video error:', err);
+                        faceStatus.textContent = 'Status: Video error';
+                    });
+                    
+                } catch (err) {
+                    console.error('Camera access error:', err);
+                    if (err.name === 'NotAllowedError') {
+                        faceStatus.textContent = 'Status: Camera access denied';
+                    } else if (err.name === 'NotFoundError') {
+                        faceStatus.textContent = 'Status: No camera found';
+                    } else {
+                        faceStatus.textContent = `Status: Error - ${err.message}`;
+                    }
+                }
+            });
+        }
+
+        function setupBeautyEditor() {
+            const video = document.getElementById('beautyVideo');
+            const originalCanvas = document.getElementById('beautyOriginalCanvas');
+            const editedCanvas = document.getElementById('beautyEditedCanvas');
+            const compareSlider = document.getElementById('compareSlider');
+            
+            if (!video || !originalCanvas || !editedCanvas) {
+                console.error('Beauty editor elements not found');
+                console.log('video:', video);
+                console.log('originalCanvas:', originalCanvas);
+                console.log('editedCanvas:', editedCanvas);
+                return;
+            }
+            
+            if (!compareSlider) {
+                console.log('compareSlider not found - skipping slider functionality');
+            }
+            
+            const sliderHandle = compareSlider ? compareSlider.querySelector('.slider-handle') : null;
+            
+            const whiteningSlider = document.getElementById('whiteningSlider');
+            const smoothSlider = document.getElementById('smoothSlider');
+            const contourSlider = document.getElementById('contourSlider');
+            const warmthSlider = document.getElementById('warmthSlider');
+            const asciiSlider = document.getElementById('asciiSlider');
+            
+            const whiteningValue = document.getElementById('whiteningValue');
+            const smoothValue = document.getElementById('smoothValue');
+            const contourValue = document.getElementById('contourValue');
+            const warmthValue = document.getElementById('warmthValue');
+            const asciiValue = document.getElementById('asciiValue');
+            
+            const resetBtn = document.getElementById('beautyResetBtn');
+            
+            const ctxOriginal = originalCanvas.getContext('2d');
+            const ctxEdited = editedCanvas.getContext('2d');
+            
+            let isRunning = false;
+            let animationId = null;
+            
+            let params = {
+                whitening: 0,
+                smooth: 0,
+                contour: 0,
+                warmth: 0,
+                ascii: 0
+            };
+            
+            let isDraggingSlider = false;
+            let sliderPosition = 50;
+            
+            async function startCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    
+                    // 等待视频元数据加载
+                    await new Promise((resolve) => {
+                        video.onloadedmetadata = () => {
+                            resolve();
+                        };
+                        video.onerror = (err) => {
+                            console.error('Video metadata error:', err);
+                            resolve(); // 即使出错也继续
+                        };
+                        // 设置超时，避免卡住
+                        setTimeout(resolve, 2000);
+                    });
+                    
+                    // 开始播放视频
+                    try {
+                        await video.play();
+                    } catch (playErr) {
+                        console.warn('Video play error (may be auto-play blocked):', playErr);
+                    }
+                    
+                    // 设置画布大小，限制最大高度
+                    const maxHeight = 350;
+                    const videoAspect = (video.videoWidth || 640) / (video.videoHeight || 480);
+                    
+                    originalCanvas.height = Math.min(video.videoHeight || 480, maxHeight);
+                    originalCanvas.width = originalCanvas.height * videoAspect;
+                    
+                    editedCanvas.height = originalCanvas.height;
+                    editedCanvas.width = originalCanvas.width;
+                    
+                    console.log('Canvas initialized:', originalCanvas.width, 'x', originalCanvas.height);
+                    
+                    isRunning = true;
+                    animate();
+                    
+                } catch (err) {
+                    console.error('Camera error:', err);
+                }
+            }
+            
+            function animate() {
+                if (!isRunning || !video.videoWidth) {
+                    animationId = requestAnimationFrame(animate);
+                    return;
+                }
+                
+                ctxOriginal.drawImage(video, 0, 0, originalCanvas.width, originalCanvas.height);
+                ctxEdited.drawImage(video, 0, 0, editedCanvas.width, editedCanvas.height);
+                
+                const hasEffects = params.smooth > 0 || params.whitening > 0 || params.contour > 0 || params.warmth !== 0;
+                
+                if (hasEffects) {
+                    applySimpleEffects();
+                }
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            function applySimpleEffects() {
+                const filters = [];
+                
+                if (params.smooth > 0) {
+                    filters.push(`blur(${params.smooth * 0.08}px)`);
+                }
+                
+                if (params.whitening > 0) {
+                    filters.push(`brightness(${1 + params.whitening * 0.003})`);
+                }
+                
+                if (params.warmth !== 0) {
+                    if (params.warmth > 0) {
+                        filters.push(`sepia(${params.warmth * 0.01})`);
+                    } else {
+                        filters.push(`hue-rotate(${-params.warmth * 0.3}deg)`);
+                        filters.push(`saturate(${1 - params.warmth * 0.003})`);
+                    }
+                }
+                
+                if (filters.length > 0) {
+                    ctxEdited.filter = filters.join(' ');
+                    ctxEdited.drawImage(editedCanvas, 0, 0);
+                    ctxEdited.filter = 'none';
+                }
+                
+                if (params.contour > 0) {
+                    applyContour();
+                }
+            }
+            
+            function applyContour() {
+                const strength = params.contour * 0.01;
+                const imageData = ctxEdited.getImageData(0, 0, editedCanvas.width, editedCanvas.height);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                    const diff = gray - 128;
+                    data[i] = Math.min(255, Math.max(0, data[i] + diff * strength));
+                    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + diff * strength));
+                    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + diff * strength));
+                }
+                
+                ctxEdited.putImageData(imageData, 0, 0);
+            }
+            
+            function updateParam(paramName, value) {
+                params[paramName] = parseFloat(value);
+                
+                const displayValue = paramName === 'warmth' ? value : Math.round(value);
+                document.getElementById(`${paramName}Value`).textContent = displayValue;
+            }
+            
+            whiteningSlider.addEventListener('input', (e) => updateParam('whitening', e.target.value));
+            smoothSlider.addEventListener('input', (e) => updateParam('smooth', e.target.value));
+            contourSlider.addEventListener('input', (e) => updateParam('contour', e.target.value));
+            warmthSlider.addEventListener('input', (e) => updateParam('warmth', e.target.value));
+            asciiSlider.addEventListener('input', (e) => updateParam('ascii', e.target.value));
+            
+            resetBtn.addEventListener('click', () => {
+                whiteningSlider.value = 0;
+                smoothSlider.value = 0;
+                contourSlider.value = 0;
+                warmthSlider.value = 0;
+                asciiSlider.value = 0;
+                
+                params = {
+                    whitening: 0,
+                    smooth: 0,
+                    contour: 0,
+                    warmth: 0,
+                    ascii: 0
+                };
+                
+                whiteningValue.textContent = '0';
+                smoothValue.textContent = '0';
+                contourValue.textContent = '0';
+                warmthValue.textContent = '0';
+                asciiValue.textContent = '0';
+            });
+            
+            const postBtn = document.getElementById('beautyPostBtn');
+            postBtn.addEventListener('click', async () => {
+                let stream = null;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                } catch (err) {
+                    console.error('Camera access denied:', err);
+                    alert('Camera access is required to capture your digital identity. Please allow camera access.');
+                    return;
+                }
+                
+                const tempVideo = document.createElement('video');
+                tempVideo.srcObject = stream;
+                tempVideo.autoplay = true;
+                tempVideo.muted = true;
+                tempVideo.playsInline = true;
+                tempVideo.style.position = 'fixed';
+                tempVideo.style.top = '-9999px';
+                tempVideo.style.left = '-9999px';
+                tempVideo.style.width = '640px';
+                tempVideo.style.height = '480px';
+                tempVideo.style.opacity = '0';
+                tempVideo.style.pointerEvents = 'none';
+                document.body.appendChild(tempVideo);
+                
+                await new Promise((resolve) => {
+                    tempVideo.onloadeddata = resolve;
+                    setTimeout(resolve, 3000);
+                });
+                
+                tempVideo.play();
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                editedCanvas.width = tempVideo.videoWidth || 640;
+                editedCanvas.height = tempVideo.videoHeight || 480;
+                
+                ctxEdited.drawImage(tempVideo, 0, 0, editedCanvas.width, editedCanvas.height);
+                
+                if (params.smooth > 0 || params.whitening > 0 || params.contour > 0 || params.warmth !== 0 || params.ascii > 0) {
+                    applyEffectsToImage();
+                }
+                
+                const editedImageData = editedCanvas.toDataURL('image/png');
+                
+                try {
+                    localStorage.setItem('customDigitalIdentity', editedImageData);
+                } catch (storageErr) {
+                    console.error('Failed to store in localStorage:', storageErr);
+                    alert('Failed to save image. localStorage may be full.');
+                    stream.getTracks().forEach(track => track.stop());
+                    tempVideo.remove();
+                    return;
+                }
+                
+                stream.getTracks().forEach(track => track.stop());
+                tempVideo.remove();
+                
+                alert('Digital identity uploaded. Please check in Folder 3.');
+            });
+            
+            function applyEffectsToImage() {
+                const filters = [];
+                
+                if (params.whitening > 0) {
+                    filters.push(`brightness(${1 + params.whitening * 0.003})`);
+                }
+                
+                if (params.smooth > 0) {
+                    filters.push(`blur(${params.smooth * 0.1}px)`);
+                }
+                
+                if (params.warmth !== 0) {
+                    if (params.warmth > 0) {
+                        filters.push(`sepia(${params.warmth * 0.01})`);
+                    } else {
+                        filters.push(`hue-rotate(${-params.warmth * 0.3}deg)`);
+                        filters.push(`saturate(${1 - params.warmth * 0.003})`);
+                    }
+                }
+                
+                if (filters.length > 0) {
+                    ctxEdited.filter = filters.join(' ');
+                    ctxEdited.drawImage(editedCanvas, 0, 0);
+                    ctxEdited.filter = 'none';
+                }
+                
+                if (params.contour > 0) {
+                    applyContour();
+                }
+                
+                if (params.ascii > 0) {
+                    applyAsciiOverlay();
+                }
+            }
+            
+            function applyAsciiOverlay() {
+                const density = params.ascii;
+                const charSet = '@#$%&*+=-. ';
+                const fontSize = Math.max(4, 12 - density * 0.08);
+                const cols = Math.floor(editedCanvas.width / fontSize);
+                const rows = Math.floor(editedCanvas.height / fontSize);
+                
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = editedCanvas.width;
+                tempCanvas.height = editedCanvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                tempCtx.drawImage(editedCanvas, 0, 0);
+                
+                const imageData = tempCtx.getImageData(0, 0, cols, rows);
+                const data = imageData.data;
+                
+                ctxEdited.fillStyle = '#000';
+                ctxEdited.fillRect(0, 0, editedCanvas.width, editedCanvas.height);
+                
+                ctxEdited.fillStyle = '#fff';
+                ctxEdited.font = `${fontSize}px monospace`;
+                ctxEdited.textAlign = 'left';
+                
+                for (let y = 0; y < rows; y++) {
+                    let rowText = '';
+                    for (let x = 0; x < cols; x++) {
+                        const i = (y * cols + x) * 4;
+                        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                        const charIndex = Math.floor((1 - avg / 255) * (charSet.length - 1));
+                        rowText += charSet[charIndex];
+                    }
+                    ctxEdited.fillText(rowText, 0, (y + 1) * fontSize);
+                }
+            }
+            
+            if (compareSlider) {
+                compareSlider.addEventListener('mousedown', (e) => {
+                    isDraggingSlider = true;
+                });
+            }
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDraggingSlider) return;
+                
+                const canvasWrapper = document.querySelector('.beauty-canvas-wrapper');
+                const rect = canvasWrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                sliderPosition = Math.max(0, Math.min(100, (x / rect.width) * 100));
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDraggingSlider = false;
+            });
+            
+            if (compareSlider) {
+                compareSlider.addEventListener('touchstart', (e) => {
+                    isDraggingSlider = true;
+                });
+            }
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!isDraggingSlider) return;
+                
+                const canvasWrapper = document.querySelector('.beauty-canvas-wrapper');
+                const rect = canvasWrapper.getBoundingClientRect();
+                const x = e.touches[0].clientX - rect.left;
+                sliderPosition = Math.max(0, Math.min(100, (x / rect.width) * 100));
+            });
+            
+            document.addEventListener('touchend', () => {
+                isDraggingSlider = false;
+            });
+            
+            startCamera();
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setupWindowDrag();
+            setupWindowResize();
+            setupFaceRecognition();
+            typeWriterEffect();
+            setupBeautyEditor();
+            
+            // 初始化背景视频
+            const backgroundVideo = document.getElementById('backgroundVideo');
+            if (backgroundVideo) {
+                backgroundVideo.src = 'video4.mp4';
+            }
+        });
+    </script>
+    <script src="obstacle.js"></script>
+</body>
+</html>

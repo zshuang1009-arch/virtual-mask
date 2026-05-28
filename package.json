@@ -1,0 +1,14 @@
+{
+  "name": "virtual-mask",
+  "version": "1.0.0",
+  "description": "Virtual Mask - Interactive Digital Identity Experience",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "deploy": "node server.js"
+  },
+  "keywords": ["virtual", "mask", "interactive", "digital-identity"],
+  "author": "",
+  "license": "MIT"
+}
